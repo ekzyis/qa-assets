@@ -243,8 +243,11 @@ fn install_aflpp() -> AppResult {
 
 fn clone_and_configure_repositories() -> AppResult {
     git_clone(
-        "https://github.com/bitcoin-core/qa-assets.git",
-        &["--depth=1"],
+        "https://github.com/ekzyis/qa-assets.git",
+        &[
+            "--depth=1",
+            "--branch=test-keep-fuzz-inputs-for-older-branches",
+        ],
         QA_ASSETS_PATH,
     )?;
     git_config(
