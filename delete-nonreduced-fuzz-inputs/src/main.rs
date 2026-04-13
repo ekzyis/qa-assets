@@ -488,13 +488,19 @@ fn run_afl_cmin<P: AsRef<Path>, Q: AsRef<Path>>(
 
 /// Move every file in `dir` to its parent directory.
 fn move_files_to_parent_dir(dir: &PathBuf) -> AppResult {
-    for entry in fs::read_dir(dir).map_err(|e| format!("fs::read_dir failed: {}", e.to_string()))? {
-        let entry = entry.map_err(|e| format!("failed to read entry: {}", e.to_string()))?;
-        let from = entry.path();
-        let to = dir
-            .parent()
-            .ok_or_else(|| format!("expected {} to have parent", from.display()))?
-            .join(entry.file_name());
+    let names: Vec<_> = fs::read_dir(dir)
+        .map_err(|e| format!("fs::read_dir failed: {}", e.to_string()))?
+        .map(|e| e.map(|e| e.file_name()))
+        .collect::<Result<_, _>>()
+        .map_err(|e| format!("failed to read entry: {}", e.to_string()))?;
+
+    let parent = dir
+        .parent()
+        .ok_or_else(|| format!("expected {} to have parent", dir.display()))?;
+
+    for name in names {
+        let from = dir.join(&name);
+        let to = parent.join(&name);
         fs::rename(&from, &to).map_err(|e| format!("fs::rename failed: {}", e.to_string()))?;
     }
 
