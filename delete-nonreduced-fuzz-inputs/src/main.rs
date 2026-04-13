@@ -67,21 +67,18 @@ Note: <ref> must be a tag or branch
 
 fn parse_cli_args() -> Result<Vec<String>, AppError> {
     let mut git_refs = Vec::new();
-    let mut args = env::args().skip(1);
-    while let Some(arg) = args.next() {
-        match arg.as_str() {
-            "--help" | "-h" => return Err(help("help requested")),
-            "--extra-ref" => {
-                let value = args
-                    .next()
-                    .ok_or_else(|| help("expected value after --extra-ref"))?;
-                if value.is_empty() {
-                    return Err(help("empty value for --extra-ref"));
-                }
-                git_ls_remote("https://github.com/bitcoin/bitcoin", &value)?;
-                git_refs.push(value);
+    let args = env::args().skip(1);
+    for arg in args {
+        if arg == "-h" || arg == "--help" {
+            Err(help("Help requested"))?;
+        } else if let Some(value) = arg.strip_prefix("--extra-ref=") {
+            if value.is_empty() {
+                return Err(help("empty value for --extra-ref"));
             }
-            a => return Err(help(&format!("Unexpected argument: {a}"))),
+            git_ls_remote("https://github.com/bitcoin/bitcoin", &value)?;
+            git_refs.push(value.to_string());
+        } else {
+            Err(help(&format!("Too many args, or unknown named arg: {arg}")))?;
         }
     }
     Ok(git_refs)
