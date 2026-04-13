@@ -502,6 +502,7 @@ fn move_files_to_parent_dir(dir: &PathBuf) -> AppResult {
         let from = dir.join(&name);
         let to = parent.join(&name);
         fs::rename(&from, &to).map_err(|e| format!("fs::rename failed: {}", e.to_string()))?;
+        println!("fs::rename: {} -> {}", from.display(), to.display());
     }
 
     fs::remove_dir(dir).map_err(|e| format!("fs::remove_dir failed: {}", e.to_string()))?;
